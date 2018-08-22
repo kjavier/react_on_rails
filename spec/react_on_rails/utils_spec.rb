@@ -66,8 +66,39 @@ module ReactOnRails
           expect(subject).to eq(File.expand_path(
                                   File.join(Rails.root,
                                             "public/webpack/dev/webpack-bundle.js")
-          ))
+                                ))
         }
+      end
+    end
+
+    if ReactOnRails::WebpackerUtils.using_webpacker?
+      describe ".source_path_is_not_defined_and_custom_node_modules?" do
+        it "returns false if node_modules is blank" do
+          allow(ReactOnRails).to receive_message_chain("configuration.node_modules_location")
+            .and_return("")
+          allow(Webpacker).to receive_message_chain("config.send").with(:data)
+                                                                  .and_return({})
+
+          expect(ReactOnRails::Utils.using_webpacker_source_path_is_not_defined_and_custom_node_modules?).to eq(false)
+        end
+
+        it "returns false if source_path is defined in the config/webpacker.yml and node_modules defined" do
+          allow(ReactOnRails).to receive_message_chain("configuration.node_modules_location")
+            .and_return("client")
+          allow(Webpacker).to receive_message_chain("config.send").with(:data)
+                                                                  .and_return(source_path: "client/app")
+
+          expect(ReactOnRails::Utils.using_webpacker_source_path_is_not_defined_and_custom_node_modules?).to eq(false)
+        end
+
+        it "returns true if node_modules is not blank and the source_path is not defined in config/webpacker.yml" do
+          allow(ReactOnRails).to receive_message_chain("configuration.node_modules_location")
+            .and_return("node_modules")
+          allow(Webpacker).to receive_message_chain("config.send").with(:data)
+                                                                  .and_return({})
+
+          expect(ReactOnRails::Utils.using_webpacker_source_path_is_not_defined_and_custom_node_modules?).to eq(true)
+        end
       end
     end
 
@@ -245,6 +276,34 @@ module ReactOnRails
 
           it { expect(subject).to eq(false) }
         end
+      end
+    end
+
+    describe ".smart_trim" do
+      it "trims smartly" do
+        s = "1234567890"
+
+        expect(Utils.smart_trim(s, -1)).to eq("1234567890")
+        expect(Utils.smart_trim(s, 0)).to eq("1234567890")
+        expect(Utils.smart_trim(s, 1)).to eq("1#{Utils::TRUNCATION_FILLER}")
+        expect(Utils.smart_trim(s, 2)).to eq("1#{Utils::TRUNCATION_FILLER}0")
+        expect(Utils.smart_trim(s, 3)).to eq("1#{Utils::TRUNCATION_FILLER}90")
+        expect(Utils.smart_trim(s, 4)).to eq("12#{Utils::TRUNCATION_FILLER}90")
+        expect(Utils.smart_trim(s, 5)).to eq("12#{Utils::TRUNCATION_FILLER}890")
+        expect(Utils.smart_trim(s, 6)).to eq("123#{Utils::TRUNCATION_FILLER}890")
+        expect(Utils.smart_trim(s, 7)).to eq("123#{Utils::TRUNCATION_FILLER}7890")
+        expect(Utils.smart_trim(s, 8)).to eq("1234#{Utils::TRUNCATION_FILLER}7890")
+        expect(Utils.smart_trim(s, 9)).to eq("1234#{Utils::TRUNCATION_FILLER}67890")
+        expect(Utils.smart_trim(s, 10)).to eq("1234567890")
+        expect(Utils.smart_trim(s, 11)).to eq("1234567890")
+      end
+
+      it "trims handles a hash" do
+        s = { a: "1234567890" }
+
+        expect(Utils.smart_trim(s, 9)).to eq(
+          "{:a=#{Utils::TRUNCATION_FILLER}890\"}"
+        )
       end
     end
   end

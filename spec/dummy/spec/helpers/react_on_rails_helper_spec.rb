@@ -3,6 +3,7 @@
 require "rails_helper"
 require "support/script_tag_utils"
 
+# rubocop:disable Metrics/BlockLength
 describe ReactOnRailsHelper, type: :helper do
   before do
     allow(self).to receive(:request) {
@@ -59,6 +60,18 @@ describe ReactOnRailsHelper, type: :helper do
       escaped_json = helper.json_safe_and_pretty(json_string_unsanitized)
       expect(escaped_json).to eq(json_string_sanitized)
     end
+
+    context "when json is an instance of ActiveSupport::SafeBuffer" do
+      it "converts to escaped JSON" do
+        json = ActiveSupport::SafeBuffer.new(
+          "{\"hello\":\"world\"}"
+        )
+
+        result = helper.json_safe_and_pretty(json)
+
+        expect(result).to eq('{"hello":"world"}')
+      end
+    end
   end
 
   describe "#sanitized_props_string(props)" do
@@ -87,23 +100,34 @@ describe ReactOnRailsHelper, type: :helper do
       { name: "My Test Name" }
     end
 
-    let(:react_component_div) do
+    let(:react_component_random_id_div) do
       '<div id="App-react-component-0"></div>'
+    end
+
+    let(:react_component_div) do
+      '<div id="App-react-component"></div>'
     end
 
     let(:id) { "App-react-component-0" }
 
-    let(:react_definition_script) do
+    let(:react_definition_script_random) do
       <<-SCRIPT.strip_heredoc
         <script type="application/json" class="js-react-on-rails-component" \
         data-component-name="App" data-dom-id="App-react-component-0">{"name":"My Test Name"}</script>
       SCRIPT
     end
 
+    let(:react_definition_script) do
+      <<-SCRIPT.strip_heredoc
+        <script type="application/json" class="js-react-on-rails-component" \
+        data-component-name="App" data-dom-id="App-react-component">{"name":"My Test Name"}</script>
+      SCRIPT
+    end
+
     let(:react_definition_script_no_params) do
       <<-SCRIPT.strip_heredoc
         <script type="application/json" class="js-react-on-rails-component" \
-        data-component-name="App" data-dom-id="App-react-component-0">{}</script>
+        data-component-name="App" data-dom-id="App-react-component">{}</script>
       SCRIPT
     end
 
@@ -121,7 +145,7 @@ describe ReactOnRailsHelper, type: :helper do
       it { is_expected.to include json_props_sanitized }
     end
 
-    describe "API with component name only" do
+    describe "API with component name only (no props or other options)" do
       subject { react_component("App") }
       it { is_expected.to be_an_instance_of ActiveSupport::SafeBuffer }
       it { is_expected.to include react_component_div }
@@ -140,6 +164,51 @@ describe ReactOnRailsHelper, type: :helper do
       expect(is_expected.target).to script_tag_be_included(react_definition_script)
     }
 
+    context "with 'random_dom_id' false option" do
+      subject { react_component("App", props: props, random_dom_id: false) }
+
+      let(:react_definition_script) do
+        <<-SCRIPT.strip_heredoc
+          <script type="application/json" class="js-react-on-rails-component" data-component-name="App" data-dom-id="App-react-component">{"name":"My Test Name"}</script>
+        SCRIPT
+      end
+
+      it { is_expected.to include '<div id="App-react-component"></div>' }
+      it { expect(is_expected.target).to script_tag_be_included(react_definition_script) }
+    end
+
+    context "with 'random_dom_id' false option" do
+      subject { react_component("App", props: props, random_dom_id: true) }
+
+      let(:react_definition_script) do
+        <<-SCRIPT.strip_heredoc
+          <script type="application/json" class="js-react-on-rails-component" data-component-name="App" data-dom-id="App-react-component-0">{"name":"My Test Name"}</script>
+        SCRIPT
+      end
+
+      it { is_expected.to include '<div id="App-react-component-0"></div>' }
+      it { expect(is_expected.target).to script_tag_be_included(react_definition_script) }
+    end
+
+    context "with 'random_dom_id' global" do
+      around(:example) do |example|
+        ReactOnRails.configure { |config| config.random_dom_id = false }
+        example.run
+        ReactOnRails.configure { |config| config.random_dom_id = true }
+      end
+
+      subject { react_component("App", props: props) }
+
+      let(:react_definition_script) do
+        <<-SCRIPT.strip_heredoc
+          <script type="application/json" class="js-react-on-rails-component" data-component-name="App" data-dom-id="App-react-component">{"name":"My Test Name"}</script>
+        SCRIPT
+      end
+
+      it { is_expected.to include '<div id="App-react-component"></div>' }
+      it { expect(is_expected.target).to script_tag_be_included(react_definition_script) }
+    end
+
     context "with 'id' option" do
       subject { react_component("App", props: props, id: id) }
 
@@ -152,7 +221,7 @@ describe ReactOnRailsHelper, type: :helper do
       end
 
       it { is_expected.to include id }
-      it { is_expected.not_to include react_component_div }
+      it { is_expected.not_to include react_component_random_id_div }
       it {
         expect(is_expected.target).to script_tag_be_included(react_definition_script)
       }
@@ -217,6 +286,8 @@ describe ReactOnRailsHelper, type: :helper do
       ReactOnRails.configuration.rendering_extension = nil
     end
 
+    after { ReactOnRails.configuration.rendering_extension = @rendering_extension }
+
     it "should not throw an error if not in a view" do
       class PlainClass
         include ReactOnRailsHelper
@@ -226,7 +297,6 @@ describe ReactOnRailsHelper, type: :helper do
       expect { ob.send(:rails_context, server_side: true) }.to_not raise_error
       expect { ob.send(:rails_context, server_side: false) }.to_not raise_error
     end
-
-    after { ReactOnRails.configuration.rendering_extension = @rendering_extension }
   end
 end
+# rubocop:enable Metrics/BlockLength

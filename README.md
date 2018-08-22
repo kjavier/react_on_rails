@@ -4,6 +4,8 @@
 
 React on Rails integrates Rails with (server rendering of) Facebook's [React](https://github.com/facebook/react) front-end framework.
 
+Intersted in optimizing your webpack setup for React on Rails including code splitting with react-router v4, webpack v4, and react-loadable? [Contact me](mailto:justin@shakacode.com).
+
 ShakaCode is **[currently looking to hire](http://www.shakacode.com/about/#work-with-us)** like-minded developers that wish to work on our projects, including [Hawaii Chee](https://www.hawaiichee.com). Your main coding interview will be pairing with us on our open source! We're getting into [Reason](https://reasonml.github.io/)!
 
 # Intro
@@ -25,14 +27,15 @@ Given that rails/webpacker gem already provides basic React integration, why wou
 
 See the [react-webpack-rails-tutorial](https://github.com/shakacode/react-webpack-rails-tutorial) for an example of a live implementation and code.
 
-
 ## React on Rails Pro and ShakaCode Pro Support
+
+![image](https://user-images.githubusercontent.com/1118459/44008223-9b29d1b8-9e3c-11e8-90a8-9d38dc241ef9.png)
 
 React on Rails Pro provides Node server rendering and other performance enhancements for React on Rails. It's live at [egghead.io](https://egghead.io). See the [React on Rails Pro Docs](https://github.com/shakacode/react_on_rails/wiki).
 
 The [React on Rails Pro Support Plan](http://www.shakacode.com/work/shakacode-pro-support.pdf) can help you with:
 
-* Optimizing your webpack setup to Webpack v4 for React on Rails.
+* Optimizing your webpack setup to Webpack v4 for React on Rails including code splitting with react-router v4, webpack v4, and react-loadable.
 * Upgrading your app to use the current Webpack setup that skips the Sprockets asset pipeline.
 * Better performance client and server side.
 * Efficiently migrating from [Angular to React](https://www.shakacode.com/services/angular-to-react/).
@@ -42,7 +45,6 @@ ShakaCode can also help you with your Rails, JavaScript, and React-Native develo
 
 The article [Why Hire ShakaCode?](https://blog.shakacode.com/can-shakacode-help-you-4a5b1e5a8a63#.jex6tg9w9) provides additional details about our projects.
 
-  
 Please [email me (Justin Gordon), the creator of React on Rails](mailto:justin@shakacode.com), to see if I can help you or if you want an invite to our private Slack room for ShakaCode.
 
 ## Testimonials for Hiring ShakaCode and our "Pro Support"

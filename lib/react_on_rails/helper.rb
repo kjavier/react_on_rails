@@ -98,6 +98,7 @@ module ReactOnRails
     #   raise_on_prerender_error: <true/false> Default to false. True will raise exception on server
     #      if the JS code throws
     # Any other options are passed to the content tag, including the id.
+    # random_dom_id can be set to override the global default.
     def react_component(component_name, options = {})
       internal_result = internal_react_component(component_name, options)
       server_rendered_html = internal_result[:result]["html"]
@@ -472,13 +473,13 @@ module ReactOnRails
     end
 
     def initialize_redux_stores
-      return "" unless @registered_stores.present? || @registered_stores_defer_render.present?
-      declarations = "var reduxProps, store, storeGenerator;\n".dup
-      all_stores = (@registered_stores || []) + (@registered_stores_defer_render || [])
-
       result = <<-JS.dup
       ReactOnRails.clearHydratedStores();
       JS
+
+      return result unless @registered_stores.present? || @registered_stores_defer_render.present?
+      declarations = "var reduxProps, store, storeGenerator;\n".dup
+      all_stores = (@registered_stores || []) + (@registered_stores_defer_render || [])
 
       result << all_stores.each_with_object(declarations) do |redux_store_data, memo|
         store_name = redux_store_data[:store_name]
